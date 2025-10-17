@@ -1,0 +1,151 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: #fa93b9;
+    font-family: "Poppins", sans-serif;
+    overflow: hidden;
+}
+
+.heart-container {
+    position: relative;
+    width: 200px;
+    height: 220px;
+    margin-bottom: 30px;
+}
+
+.heart {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 180px;
+    background-color: white;
+    clip-path: polygon(
+    50% 12%, 61% 4%, 74% 4%, 84% 10%, 90% 20%, 95% 35%, 
+    85% 55%, 50% 90%, 15% 55%, 5% 35%, 10% 20%, 16% 10%, 
+    26% 4%, 39% 4%
+    );
+    border: 3px solid #ff4d6d;
+    border-radius: 10px;
+    overflow: hidden;
+    transform-origin: center;
+    transition: transform 0.15s ease, box-shadow 0.3s ease;
+    box-shadow: 0 6px 20px rgba(255, 100, 150, 0.4);
+}
+
+.heart.pump {
+    transform: scale(1.1);
+}
+
+.fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    background: linear-gradient(to top, #ff1a1a, #ff7a7a);
+    transition: height 0.25s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    z-index: -1;
+}
+
+#fillBtn, #giftBtn {
+    position: relative;
+    padding: 14px 32px;
+    font-size: 22px;
+    font-weight: bold;
+    background: linear-gradient(145deg, #ff6b9b, #ffffff);
+    border: 3px solid #ffffff;
+    border-radius: 50px;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(255, 0, 100, 0.4),
+                inset 0 -3px 6px rgba(255, 255, 255, 0.5);
+    transition: transform 0.15s ease, box-shadow 0.25s ease, filter 0.25s ease;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+#fillBtn:hover, #giftBtn:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+    box-shadow: 0 8px 20px rgba(255, 80, 150, 0.6);
+}
+
+#fillBtn:active, #giftBtn:active {
+    transform: scale(0.9);
+    box-shadow: inset 0 3px 8px rgba(255, 255, 255, 0.3);
+}
+
+#giftBtn {
+    display: none;
+    background: linear-gradient(145deg, #ffee00, #ff9ac7);
+    font-size: 20px;
+}
+
+.emoji {
+    position: absolute;
+    font-size: 28px;
+    animation: floatUp 1.3s ease-out forwards;
+    user-select: none;
+    pointer-events: none;
+    opacity: 0.9;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    60% { transform: translateY(-80px) scale(1.3); opacity: 1; }
+    100% { transform: translateY(-150px) scale(0.7); opacity: 0; }
+}
+
+.heart.full {
+    animation: glow 1.5s ease-in-out infinite alternate,
+                float 2.5s ease-in-out infinite,
+                heartbeat 1.2s ease-in-out infinite;
+}
+
+@keyframes glow {
+    from { box-shadow: 0 0 15px rgba(255, 120, 160, 0.5); }
+    to   { box-shadow: 0 0 25px rgba(255, 80, 140, 0.9); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.1); }
+    40% { transform: scale(0.95); }
+    60% { transform: scale(1.05); }
+    80% { transform: scale(0.98); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.congrats {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28px;
+    font-weight: 700;
+    color: #ff3c7c;
+    text-shadow: 0 0 10px rgba(255, 80, 140, 0.8);
+    opacity: 0;
+    animation: showCongrats 2s ease forwards;
+    pointer-events: none;
+    font-family: 'Pacifico', cursive;
+}
+
+@keyframes showCongrats {
+    0% { opacity: 0; transform: translate(-50%, -10px) scale(0.8); }
+    30% { opacity: 1; transform: translate(-50%, -20px) scale(1.1); }
+    70% { opacity: 1; transform: translate(-50%, -20px) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -10px) scale(0.9); }
+}

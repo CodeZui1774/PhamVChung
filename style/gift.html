@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Message Box 💌</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    background: #fa93b9;
+    font-family: sans-serif;
+  }
+
+  #start-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    width: 150px;
+    height: auto;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 10;
+    animation: floatBtn 2.5s ease-in-out infinite;
+    transition: transform 0.3s ease;
+  }
+
+  #start-btn:hover {
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+
+  @keyframes floatBtn {
+    0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+    50% { transform: translate(-50%, -50%) translateY(-10px); }
+  }
+
+  #warning-text {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px;
+    color: #ff3366;
+    background: rgba(255,255,255,0.7);
+    padding: 10px 16px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    animation: fadeIn 1.5s ease forwards 0.5s;
+    z-index: 9;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  .random-img {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    border-radius: 15px;
+  }
+
+  @keyframes float {
+    0% { opacity: 0; transform: translateY(0px); }
+    20% { opacity: 1; }
+    50% { transform: translateY(-20px); }
+    80% { opacity: 0; }
+    100% { opacity: 0; transform: translateY(0px); }
+  }
+
+  .chat-bubble {
+    position: absolute;
+    padding: 6px 10px;
+    border-radius: 15px;
+    color: white;
+    background: #0084ff;
+    display: flex;
+    align-items: start;
+    gap: 4px;
+    opacity: 0;
+    pointer-events: none;
+    font-size: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    max-width: 180px;
+  }
+
+  .chat-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  @keyframes chatFade {
+    0%, 100% { opacity: 0; transform: translateY(0); }
+    10%, 90% { opacity: 1; transform: translateY(-10px); }
+  }
+</style>
+</head>
+<body>
+
+<img id="start-btn" src="./MessBox.png" alt="Start Chat">
+<div id="warning-text">⚠️ Bạn đang có rất nhiều tin nhắn chưa đọc</div>
+<audio id="bg-music" src="./Nhac.mp3" preload="auto" loop></audio>
+<audio id="popbtn" src="./style/pop.mp3"></audio>
+
+<script>
+  window.addEventListener('load', () => {
+    const warning = document.getElementById('warning-text');
+    setTimeout(() => {
+      warning.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+      warning.style.opacity = '0';
+      warning.style.transform = 'translateX(-50%) translateY(-10px)';
+      setTimeout(() => warning.remove(), 800);
+    }, 2000);
+  });
+  
+
+  function startEffects() {
+    const startBtn = document.getElementById('start-btn');
+    const music = document.getElementById('bg-music');
+    const pop = document.getElementById('popbtn');
+    
+    pop.play();
+    music.currentTime = 33;
+    music.play().catch(err => console.log("Không thể phát nhạc:", err));
+
+    startBtn.style.transition = 'opacity 0.8s ease';
+    startBtn.style.opacity = '0';
+    setTimeout(() => startBtn.remove(), 800);
+
+    const isMobile = window.innerWidth <= 768;
+    const floatingCount = isMobile ? 10 : 7; 
+    const chatCount = isMobile ? 3 : 5;      
+    const imgMinScale = isMobile ? 0.9 : 0.5;
+    const imgMaxScale = isMobile ? 1.5 : 0.9;
+    const chatFontSize = isMobile ? '11px' : '14px';
+    const chatPadding = isMobile ? '4px 8px' : '8px 12px';
+    const screenPadding = 20;
+
+    let images = [];
+    for (let i = 1; i <= 8; i++) {
+      images.push(`./img/Anh (${i}).jpg`);
+    }
+    let remainingImages = [...images];
+    const cols = 6;
+    const rows = 4;
+    const cellWidth = window.innerWidth / cols;
+    const cellHeight = window.innerHeight / rows;
+    const occupied = Array(rows).fill(0).map(() => Array(cols).fill(false));
+
+    function random(min, max) { return Math.random() * (max - min) + min; }
+
+    function getRandomCell() {
+      const emptyCells = [];
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (!occupied[r][c]) emptyCells.push({r, c});
+        }
+      }
+      if (emptyCells.length === 0) return null;
+      const cell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      occupied[cell.r][cell.c] = true;
+      return cell;
+    }
+
+    function getRandomImage() {
+      if (remainingImages.length === 0) remainingImages = [...images];
+      const index = Math.floor(Math.random() * remainingImages.length);
+      return remainingImages.splice(index, 1)[0];
+    }
+
+    function createFloatingImage() {
+      const body = document.body;
+      const cell = getRandomCell();
+      if (!cell) { setTimeout(createFloatingImage, 500); return; }
+
+      const imgSrc = getRandomImage();
+      const img = document.createElement('img');
+      img.src = imgSrc;
+      img.classList.add('random-img');
+
+      const width = random(cellWidth * imgMinScale, cellWidth * imgMaxScale);
+      img.style.width = `${width}px`;
+
+      const left = cell.c * cellWidth + random(0, cellWidth - width);
+      const top = cell.r * cellHeight + random(0, cellHeight - width);
+      img.style.left = `${left}px`;
+      img.style.top = `${top}px`;
+
+      const duration = random(3, 6);
+      img.style.animation = `float ${duration}s ease-in-out forwards`;
+
+      body.appendChild(img);
+
+      setTimeout(() => {
+        body.removeChild(img);
+        occupied[cell.r][cell.c] = false;
+        createFloatingImage();
+      }, duration * 1000);
+    }
+    for (let i = 0; i < floatingCount; i++) { setTimeout(createFloatingImage, i * 500); }
+
+    const chatTexts = [
+      "Xin chào em yêu ❤️", "Anh nhớ em quá 🥰", "Hôm nay em thế nào rồi? 😘",
+      "Chúc em luôn xinh đẹp và vui vẻ 💝", "Anh đang nghĩ về em đấy 💌",
+      "Em ngủ ngon nha 😴💤", "Anh yêu em rất nhiều ❤️🔥",
+      "Ai mà có em xinh thế này 💕", "Hôm nay em cười nhiều không? 😄",
+      "Anh hứa sẽ làm em vui 😎", "Em là cả thế giới của anh 🌏❤️",
+      "Mãi mãi yêu em nhé 💞", "Anh nhớ nụ cười của em 😍",
+      "Người yêu à, anh đến ngay 😘", "Em có đang nghĩ đến anh không? 💌",
+      "Anh luôn muốn thấy em hạnh phúc 💖", "❤️💛💚🧡❤️‍🔥"
+    ];
+
+    const chatIcons = ["💬","😊","👍","🎉","🥰","🔥"];
+    const chatCols = 5;
+    const chatRows = 5;
+    const chatCellWidth = window.innerWidth / chatCols;
+    const chatCellHeight = window.innerHeight / chatRows;
+    const chatOccupied = Array(chatRows).fill(0).map(() => Array(chatCols).fill(false));
+
+    function getRandomChatCell() {
+      const emptyCells = [];
+      for (let r = 0; r < chatRows; r++) {
+        for (let c = 0; c < chatCols; c++) {
+          if (!chatOccupied[r][c]) emptyCells.push({r, c});
+        }
+      }
+      if (emptyCells.length === 0) return null;
+      const cell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      chatOccupied[cell.r][cell.c] = true;
+      return cell;
+    }
+
+    function createChatBubble() {
+      const body = document.body;
+      const cell = getRandomChatCell();
+      if (!cell) { setTimeout(createChatBubble, 500); return; }
+
+      const bubble = document.createElement('div');
+      bubble.classList.add('chat-bubble');
+      bubble.style.fontSize = chatFontSize;
+      bubble.style.padding = chatPadding;
+      bubble.style.maxWidth = isMobile ? '150px' : '180px';
+
+      const icon = document.createElement('span');
+      icon.classList.add('chat-icon');
+      icon.textContent = chatIcons[Math.floor(Math.random() * chatIcons.length)];
+
+      const text = document.createElement('span');
+      text.textContent = chatTexts[Math.floor(Math.random() * chatTexts.length)];
+
+      bubble.appendChild(icon);
+      bubble.appendChild(text);
+      body.appendChild(bubble);
+
+      const bubbleWidth = bubble.offsetWidth;
+      const bubbleHeight = bubble.offsetHeight;
+      let left = Math.max(screenPadding, Math.min(cell.c * chatCellWidth + random(0, chatCellWidth - bubbleWidth), window.innerWidth - bubbleWidth - screenPadding));
+      let top = Math.max(screenPadding, Math.min(cell.r * chatCellHeight + random(0, chatCellHeight - bubbleHeight), window.innerHeight - bubbleHeight - screenPadding));
+
+      bubble.style.left = `${left}px`;
+      bubble.style.top = `${top}px`;
+
+      const duration = random(2, 4);
+      bubble.style.animation = `chatFade ${duration}s ease-in-out forwards`;
+
+      setTimeout(() => {
+        body.removeChild(bubble);
+        chatOccupied[cell.r][cell.c] = false;
+        setTimeout(createChatBubble, random(500, 1500));
+      }, duration * 1000);
+    }
+
+    for (let i = 0; i < chatCount; i++) { setTimeout(createChatBubble, i * 1000); }
+  }
+
+  document.getElementById('start-btn').addEventListener('click', startEffects);
+</script>
+</body>
+</html>
