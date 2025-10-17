@@ -11,18 +11,19 @@ let clickCount = 0;
 let lastClickTime = Date.now();
 let fallInterval;
 let heartFull = false;
+let holdInterval; // <== thêm để xử lý nhấn giữ
 
 const emojis = ["😍", "❤️", "🥰", "❤️‍🩹", "❤️‍🔥", "💘", "💝", "💛", "💚", "🧡", "💌"];
 
 function startFalling() {
     clearInterval(fallInterval);
     fallInterval = setInterval(() => {
-    if (heartFull) return;
-    const now = Date.now();
-    if (now - lastClickTime > 700 && level > 0) {
-        level = Math.max(0, level - 3);
-        fill.style.height = level + '%';
-    }
+        if (heartFull) return;
+        const now = Date.now();
+        if (now - lastClickTime > 700 && level > 0) {
+            level = Math.max(0, level - 3);
+            fill.style.height = level + '%';
+        }
     }, 100);
 }
 
@@ -47,7 +48,7 @@ function createFloatingEmoji() {
     setTimeout(() => emoji.remove(), 1300);
 }
 
-fillBtn.addEventListener('click', () => {
+function increaseHeartLevel() {
     if (heartFull) return;
     pop.currentTime = 0;
     pop.play();
@@ -58,32 +59,62 @@ fillBtn.addEventListener('click', () => {
     createFloatingEmoji();
 
     if (clickCount >= 5) {
-    clickCount = 0;
-    if (level < 100) {
-        level += 10;
-        fill.style.height = level + '%';
-    }
+        clickCount = 0;
+        if (level < 100) {
+            level += 10;
+            fill.style.height = level + '%';
+        }
 
-    if (level >= 100) {
-        level = 100;
-        heartFull = true;
-        fill.style.height = '100%';
-        heart.classList.add('full');
-        clearInterval(fallInterval);
+        if (level >= 100) {
+            level = 100;
+            heartFull = true;
+            fill.style.height = '100%';
+            heart.classList.add('full');
+            clearInterval(fallInterval);
 
-        const congrats = document.createElement('div');
-        congrats.classList.add('congrats');
-        tada.play();
-        congrats.innerText = 'Congratulations';
-        heartContainer.appendChild(congrats);
+            const congrats = document.createElement('div');
+            congrats.classList.add('congrats');
+            tada.play();
+            congrats.innerText = 'Congratulations';
+            heartContainer.appendChild(congrats);
 
-        setTimeout(() => {
-        congrats.remove();
-        fillBtn.style.display = 'none';
-        giftBtn.style.display = 'inline-block';
-        }, 2000);
+            setTimeout(() => {
+                congrats.remove();
+                fillBtn.style.display = 'none';
+                giftBtn.style.display = 'inline-block';
+            }, 2000);
+        }
     }
-    }
+}
+
+fillBtn.addEventListener('click', increaseHeartLevel);
+
+// 👉 Thêm tính năng NHẤN GIỮ
+fillBtn.addEventListener('mousedown', () => {
+    if (heartFull) return;
+    holdInterval = setInterval(() => {
+        increaseHeartLevel();
+    }, 200); // mỗi 200ms tăng 1 "nhịp"
+});
+
+fillBtn.addEventListener('mouseup', () => {
+    clearInterval(holdInterval);
+});
+fillBtn.addEventListener('mouseleave', () => {
+    clearInterval(holdInterval);
+});
+
+// 👉 hỗ trợ cho thiết bị cảm ứng
+fillBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (heartFull) return;
+    holdInterval = setInterval(() => {
+        increaseHeartLevel();
+    }, 200);
+});
+
+fillBtn.addEventListener('touchend', () => {
+    clearInterval(holdInterval);
 });
 
 giftBtn.addEventListener('click', () => {
@@ -92,11 +123,9 @@ giftBtn.addEventListener('click', () => {
     pop.play();
     giftBtn.style.transform = 'scale(0.9)';
     setTimeout(() => {
-    giftBtn.style.transform = 'scale(1)';
-    // Chuyển trang sang mes.html
-    window.location.href = 'style/gift.html';
+        giftBtn.style.transform = 'scale(1)';
+        window.location.href = 'style/gift.html';
     }, 300);
 });
-
 
 startFalling();
